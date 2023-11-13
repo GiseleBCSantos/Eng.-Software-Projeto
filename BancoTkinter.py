@@ -103,6 +103,8 @@ class Funcs():
     def adicionarContas(self):
         self.senha_1 = self.inserir_senha_entry.get()
         self.senha_2 = self.repetir_senha_entry.get()
+        print(self.senha_1)
+        print(self.senha_2)
 
         if self.senha_1 == self.senha_2:
             self.senha_criacao = self.senha_1
@@ -117,6 +119,8 @@ class Funcs():
         self.cursor.execute(f"""INSERT INTO contas (cod_cliente, senha, saldo) VALUES({cod_cliente}, {self.senha_criacao}, {self.saldo})""")
         self.conn.commit()
         self.desconecta_bd()
+
+        self.abrir_autenticacao()
 
 
 
@@ -228,11 +232,15 @@ class Funcs():
 
     # Caso senhas não sejam iguais
     def senhas_diferentes(self):
-        self.senha_diferente_1_lb = Label(self.frame_continuar_criarConta, text="Senhas são diferentes.")
-        self.senha_diferente_1_lb.place(relx=0.75, rely=0.1, relwidth=0.2, relheight=0.1)
 
-        self.senha_diferente_2_lb = Label(self.frame_continuar_criarConta, text="Senhas são diferentes.")
-        self.senha_diferente_2_lb.place(relx=0.75, rely=0.25, relwidth=0.2, relheight=0.1)
+
+        self.senha_diferente_1_lb = Label(self.frame_continuar_criarConta, text='Senhas são diferentes.', bg='red')
+        self.senha_diferente_1_lb.place(relx=0.71, rely=0.1, relwidth=0.28, relheight=0.1)
+
+        self.senha_diferente_2_lb = Label(self.frame_continuar_criarConta, text="Senhas são diferentes.", bg='red')
+        self.senha_diferente_2_lb.place(relx=0.71, rely=0.25, relwidth=0.28, relheight=0.1)
+
+        self.limpa_tela_senha_dep_inicial()
 
     # Criar tabela futuramente
     # def select_lista(self):
@@ -368,43 +376,38 @@ class Application(Funcs):
 
     # Frame e Widgets Criar Conta
     def frame_continuar_criarConta(self):
-        self.frame1_continuar_criarConta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
-        self.frame1_continuar_criarConta.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
+        self.frame_continuar_criarConta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
+        self.frame_continuar_criarConta.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
     def widgets_continuar_criarConta(self):
         self.root.title('Criar Conta')
         self.saldo = 0
         print(self.saldo)
         #botao voltar nao funciona
-        self.bt_voltar_criarConta = Button(self.frame1_continuar_criarConta, text='Voltar', command=self.abrir_janela_criarConta)
+        self.bt_voltar_criarConta = Button(self.frame_continuar_criarConta, text='Voltar', command=self.abrir_janela_criarConta)
         self.bt_voltar_criarConta.place(relx=0.01, rely=0.9, relwidth=0.2, relheight=0.1)
 
-        self.inserir_senha_label = Label(self.frame1_continuar_criarConta, text='Insira uma senha:')
+        self.inserir_senha_label = Label(self.frame_continuar_criarConta, text='Insira uma senha:')
         self.inserir_senha_label.place(relx=0.2, rely=0.1, relwidth=0.25, relheight=0.1)
-        self.inserir_senha_entry = Entry(self.frame1_continuar_criarConta)
+        self.inserir_senha_entry = Entry(self.frame_continuar_criarConta)
         self.inserir_senha_entry.place(relx=0.5, rely=0.1, relwidth=0.2, relheight=0.1)
 
 
-        self.repetir_senha_label = Label(self.frame1_continuar_criarConta, text='Repita a senha:')
+        self.repetir_senha_label = Label(self.frame_continuar_criarConta, text='Repita a senha:')
         self.repetir_senha_label.place(relx=0.2, rely=0.25, relwidth=0.2, relheight=0.1)
-        self.repetir_senha_entry = Entry(self.frame1_continuar_criarConta)
+        self.repetir_senha_entry = Entry(self.frame_continuar_criarConta)
         self.repetir_senha_entry.place(relx=0.5, rely=0.25, relwidth=0.2, relheight=0.1)
 
-        self.deposito_inicial_label = Label(self.frame1_continuar_criarConta, text='Deseja realizar um depósito inicial?')
-        self.deposito_inicial_label.place(relx=0.4, rely=0.4, relwidth=0.45, relheight=0.1)
-        self.deposito_inicial_confirmacao_sim_bt = Button(self.frame1_continuar_criarConta, text='Sim', command=self.confirmacao_deposito_inicial)
-        self.deposito_inicial_confirmacao_sim_bt.place(relx=0.3, rely=0.52, relwidth=0.1, relheight=0.1)
-        self.deposito_inicial_confirmacao_nao_bt = Button(self.frame1_continuar_criarConta, text='Não')
-        self.deposito_inicial_confirmacao_nao_bt.place(relx=0.55, rely=0.52, relwidth=0.1, relheight=0.1)
+
+        self.deposito_inicial_label = Label(self.frame_continuar_criarConta, text='Deseja realizar um depósito inicial?')
+        self.deposito_inicial_label.place(relx=0.3, rely=0.4, relwidth=0.45, relheight=0.1)
+        self.deposito_inicial_confirmacao_sim_bt = Button(self.frame_continuar_criarConta, text='Sim', command=self.confirmacao_deposito_inicial)
+        self.deposito_inicial_confirmacao_sim_bt.place(relx=0.5, rely=0.52, relwidth=0.1, relheight=0.1)
 
 
-        self.criar_conta_bt = Button(self.frame1_continuar_criarConta, text='Deseja criar sua conta no banco agora?', command=self.adicionarContas)
+
+        self.criar_conta_bt = Button(self.frame_continuar_criarConta, text='Deseja criar sua conta no banco agora?', command=self.adicionarContas)
         self.criar_conta_bt.place(relx=0.35, rely=0.9, relwidth=0.5, relheight=0.1)
 
-        # if self.inserir_senha_entry.get() != None:
-        #     self.senha = self.inserir_senha_entry.get()
-        #     print(self.senha)
-        #     self.bt_criarContaBancaria = Button(self.frame1_continuar_criarConta, text='Criar Conta no Banco', command=self.voltar_autenticacao)
-        #     self.bt_criarContaBancaria.place(relx=0.35, rely=0.89, relwidth=0.3, relheight=0.1)
 
 
 
