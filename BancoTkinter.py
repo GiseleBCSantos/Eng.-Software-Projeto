@@ -13,6 +13,7 @@ root = Tk()
 # print(conexao.status)
 
 class Funcs():
+    # Limpeza de telas:
     def limpa_tela_criar_conta(self):
         self.nome_entry.delete(0, END)
         self.cpf_entry.delete(0, END)
@@ -26,13 +27,24 @@ class Funcs():
         self.inserir_senha_entry.delete(0, END)
         self.repetir_senha_entry.delete(0, END)
 
-    def abrir_janela_criarConta(self):
-        self.frame_criarConta()
-        self.widgets_criarConta()
-    def voltar_autenticacao(self):
-        self.frames_da_tela()
-        self.widgets_frame1()
 
+
+
+
+    # Ir/Voltar para páginas
+    def abrir_janela_criarConta(self):
+        self.frame_adicionarCliente()
+        self.widgets_adicionarCliente()
+    def abrir_autenticacao(self):
+        self.frames_autenticacao()
+        self.widgets_autenticacao()
+
+
+
+
+
+
+    # Conexões BD
     def conecta_bd(self):
         self.conn = psycopg2.connect(database='Banco',
                                    host='localhost',
@@ -43,6 +55,13 @@ class Funcs():
         print('Conectando ao banco de dados')
     def desconecta_bd(self):
         self.conn.close()
+
+
+
+
+
+
+    # Criação da tabela clientes e contas no BD
     def criarClientes(self):
 
         self.conecta_bd()
@@ -72,13 +91,29 @@ class Funcs():
                 ''')
         self.conn.commit();
         print('banco de dados criado')
+
+
+
+
+
+
+
+
+    # Inserção dos dados de Clientes no BD
     def adicionarContas(self):
-        if self.inserir_senha_entry == self.repetir_senha_entry:
-            self.senha_criacao = self.inserir_senha_entry.get()
+        self.senha_1 = self.inserir_senha_entry.get()
+        self.senha_2 = self.repetir_senha_entry.get()
+
+        if self.senha_1 == self.senha_2:
+            self.senha_criacao = self.senha_1
+        else:
+            self.senhas_diferentes()
+
 
         self.conecta_bd()
         self.cursor.execute(f"""SELECT cod_cliente FROM clientes WHERE cpf = '{self.cpf}'""")
-        cod_cliente = self.cursor.fetchall()[0]
+        cod_cliente = self.cursor.fetchall()[0][0]
+        print(cod_cliente)
         self.cursor.execute(f"""INSERT INTO contas (cod_cliente, senha, saldo) VALUES({cod_cliente}, {self.senha_criacao}, {self.saldo})""")
         self.conn.commit()
         self.desconecta_bd()
@@ -86,6 +121,14 @@ class Funcs():
 
 
 
+
+
+
+
+
+
+
+    # Inserção dos dados de Conta Corrente no BD
     def add_cliente(self):
 
         self.nome = self.nome_entry.get()
@@ -111,6 +154,15 @@ class Funcs():
         print('conta criada com sucesso')
         self.frame_continuar_criarConta()
         self.widgets_continuar_criarConta()
+
+
+
+
+
+
+
+
+    # Autenticação do cliente na tela de entrada para acessar a conta
     def autenticar_cliente(self):
         self.user = self.user_entry.get()
         self.senha = self.senha_entry.get()
@@ -134,21 +186,55 @@ class Funcs():
                         self.desconecta_bd()
                         ###
                         ### COLOCAR AQUI UM NOVO FRAME PRA QUANDO O USUARIO FOR AUTENTICADO
+
+
+
+
+
+
+
+
+
+    # Para caso o cliente deseje fazer um depósito inicial ao criar a conta
     def confirmacao_deposito_inicial(self):
-        self.deposito_inicial_lb = Label(self.frame1_continuar_criarConta, text='R$')
+        self.deposito_inicial_lb = Label(self.frame_continuar_criarConta, text='R$')
         self.deposito_inicial_lb.place(relx=0.2, rely=0.65, relwidth=0.1, relheight=0.1)
 
-        self.deposito_inicial_entry = Entry(self.frame1_continuar_criarConta)
+        self.deposito_inicial_entry = Entry(self.frame_continuar_criarConta)
         self.deposito_inicial_entry.place(relx=0.35, rely=0.65, relwidth=0.3, relheight=0.1)
 
-        self.confirmacao_deposito_inicial_bt = Button(self.frame1_continuar_criarConta, text='Confirmar depósito', command=self.atualizar_saldo_inicial)
+        self.confirmacao_deposito_inicial_bt = Button(self.frame_continuar_criarConta, text='Confirmar depósito', command=self.atualizar_saldo_inicial)
         self.confirmacao_deposito_inicial_bt.place(relx=0.35, rely=0.78, relwidth=0.3, relheight=0.1)
         print(self.saldo)
 
+
+
+
+
+
+
+
+
+
+    # Para atualizar o saldo inicial do cliente para o inserido
     def atualizar_saldo_inicial(self):
         self.saldo = self.deposito_inicial_entry.get()
         print(self.saldo)
 
+
+
+
+
+
+    # Caso senhas não sejam iguais
+    def senhas_diferentes(self):
+        self.senha_diferente_1_lb = Label(self.frame_continuar_criarConta, text="Senhas são diferentes.")
+        self.senha_diferente_1_lb.place(relx=0.75, rely=0.1, relwidth=0.2, relheight=0.1)
+
+        self.senha_diferente_2_lb = Label(self.frame_continuar_criarConta, text="Senhas são diferentes.")
+        self.senha_diferente_2_lb.place(relx=0.75, rely=0.25, relwidth=0.2, relheight=0.1)
+
+    # Criar tabela futuramente
     # def select_lista(self):
     #     self.listaCli.delete(*self.listaCli.get_children())
     #     self.conecta_bd()
@@ -163,18 +249,20 @@ class Application(Funcs):
     def __init__(self):
         self.root = root
         self.tela()
-        # self.frame_criarConta()
-        # self.widgets_criarConta()
-        self.frames_da_tela()
-        self.widgets_frame1()
-        # self.frame_usuarios()
-        # self.lista_frame2()
 
+        # Abrir tela de autenticação no inicio da aplicação
+        self.frames_autenticacao()
+        self.widgets_autenticacao()
+
+
+
+
+        # Criação das tabelas no inicio da aplicação
         self.criarClientes()
         self.criarContas()
-        # self.select_lista()
 
         root.mainloop()
+
     def tela(self):
         self.root.title('Tela inicial')
         self.root.configure(background='#1e3743')
@@ -182,43 +270,17 @@ class Application(Funcs):
         self.root.resizable(True, True)
         self.root.maxsize(width=988, height=788)
         self.root.minsize(width=400, height=300)
-    def frames_da_tela(self):
+
+
+
+
+
+    # Criação do frame e dos widgets da autenticação
+    def frames_autenticacao(self):
+        self.root.title("Autenticação")
         self.frame_1 = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
         self.frame_1.place(relx= 0.1, rely=0.1, relwidth=0.8, relheight=0.8)
-    def frame_criarConta(self):
-        self.root.title('Criar Usuário')
-        self.frame_criarConta = Frame(self.root, bd=3, bg='#dfe3ee', highlightbackground='#759fe6',
-                                      highlightthickness=2)
-        self.frame_criarConta.place(relx=0.1, rely=0.1, relwidth=0.8, relheight=0.8)
-    def frame_usuarios(self):
-        self.root.title('Criar Conta no banco')
-        self.frame_2 = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
-        self.frame_2.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
-    def frame_continuar_criarConta(self):
-        self.frame1_continuar_criarConta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
-        self.frame1_continuar_criarConta.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
-    # def lista_frame2(self):
-    #     self.listaCli = ttk.Treeview(self.frame_2, height=3, columns=('col1', 'col2', 'col3', 'col4'))
-    #     self.listaCli.heading('#0', text='')
-    #     self.listaCli.heading('#1', text='Nome')
-    #     self.listaCli.heading('#2', text='CPF')
-    #     self.listaCli.heading('#3', text='RG')
-    #     self.listaCli.heading('#4', text='Telefone')
-    #     self.listaCli.heading('#5', text='Endereco')
-    #
-    #     self.listaCli.column('#0', width=1)
-    #     self.listaCli.column('#1', width=50)
-    #     self.listaCli.column('#2', width=200)
-    #     self.listaCli.column('#3', width=125)
-    #     self.listaCli.column('#4', width=125)
-    #     self.listaCli.column('#5', width=125)
-    #
-    #     self.listaCli.place(relx=0.01, rely=0.1, relwidth=0.95, relheight=0.85)
-    #
-    #     self.scroolLista = Scrollbar(self.frame_2, orient='vertical')
-    #     self.listaCli.configure(yscroll= self.scroolLista.set)
-    #     self.scroolLista.place(relx=0.96, rely=0.1, relwidth=0.04, relheight=0.85)
-    def widgets_frame1(self):
+    def widgets_autenticacao(self):
         ### Criação do botão limpar
         self.bt_autenticar = Button(self.frame_1, text='Autenticar', bg='#1e3743', fg='white', command=self.autenticar_cliente)
         self.bt_autenticar.place(relx=0.4, rely=0.7, relwidth=0.2, relheight=0.1)
@@ -244,7 +306,25 @@ class Application(Funcs):
 
         self.senha_entry = Entry(self.frame_1)
         self.senha_entry.place(relx=0.45, rely=0.4, relwidth=0.3, relheight=0.1)
-    def widgets_criarConta(self):
+
+
+
+
+
+
+
+
+
+
+
+
+    # Frame e Widgets Adicionar Cliente
+    def frame_adicionarCliente(self):
+        self.root.title('Criar Usuário')
+        self.frame_criarConta = Frame(self.root, bd=3, bg='#dfe3ee', highlightbackground='#759fe6',
+                                      highlightthickness=2)
+        self.frame_criarConta.place(relx=0.1, rely=0.1, relwidth=0.8, relheight=0.8)
+    def widgets_adicionarCliente(self):
         self.codigo = 1
         self.codigo += 1
 
@@ -276,8 +356,20 @@ class Application(Funcs):
         self.bt_criarConta = Button(self.frame_criarConta, text='Avançar', command=self.add_cliente)
         self.bt_criarConta.place(relx=0.4, rely=0.8, relwidth=0.2, relheight=0.1)
 
-        self.bt_voltar = Button(self.frame_criarConta, text='Voltar', command=self.voltar_autenticacao)
+        self.bt_voltar = Button(self.frame_criarConta, text='Voltar', command=self.abrir_autenticacao)
         self.bt_voltar.place(relx=0.01, rely=0.9, relwidth=0.2, relheight=0.1)
+
+
+
+
+
+
+
+
+    # Frame e Widgets Criar Conta
+    def frame_continuar_criarConta(self):
+        self.frame1_continuar_criarConta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
+        self.frame1_continuar_criarConta.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
     def widgets_continuar_criarConta(self):
         self.root.title('Criar Conta')
         self.saldo = 0
@@ -313,6 +405,34 @@ class Application(Funcs):
         #     print(self.senha)
         #     self.bt_criarContaBancaria = Button(self.frame1_continuar_criarConta, text='Criar Conta no Banco', command=self.voltar_autenticacao)
         #     self.bt_criarContaBancaria.place(relx=0.35, rely=0.89, relwidth=0.3, relheight=0.1)
+
+
+
+
+    # def lista_frame2(self):
+    #     self.listaCli = ttk.Treeview(self.frame_2, height=3, columns=('col1', 'col2', 'col3', 'col4'))
+    #     self.listaCli.heading('#0', text='')
+    #     self.listaCli.heading('#1', text='Nome')
+    #     self.listaCli.heading('#2', text='CPF')
+    #     self.listaCli.heading('#3', text='RG')
+    #     self.listaCli.heading('#4', text='Telefone')
+    #     self.listaCli.heading('#5', text='Endereco')
+    #
+    #     self.listaCli.column('#0', width=1)
+    #     self.listaCli.column('#1', width=50)
+    #     self.listaCli.column('#2', width=200)
+    #     self.listaCli.column('#3', width=125)
+    #     self.listaCli.column('#4', width=125)
+    #     self.listaCli.column('#5', width=125)
+    #
+    #     self.listaCli.place(relx=0.01, rely=0.1, relwidth=0.95, relheight=0.85)
+    #
+    #     self.scroolLista = Scrollbar(self.frame_2, orient='vertical')
+    #     self.listaCli.configure(yscroll= self.scroolLista.set)
+    #     self.scroolLista.place(relx=0.96, rely=0.1, relwidth=0.04, relheight=0.85)
+
+
+
 
 
 
