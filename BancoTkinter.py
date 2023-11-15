@@ -3,14 +3,6 @@ from tkinter import ttk
 import psycopg2
 
 root = Tk()
-#
-# conexao = psycopg2.connect(database = 'Banco',
-#                             host = 'localhost',
-#                             user = 'postgres',
-#                             password = 'postgres',
-#                             port = '5432')
-# print(conexao.info)
-# print(conexao.status)
 
 class Funcs():
     # Limpeza de telas:
@@ -21,7 +13,7 @@ class Funcs():
         self.telefone_entry.delete(0, END)
         self.endereco_entry.delete(0, END)
     def limpa_tela_autenticacao(self):
-        self.user_entry.delete(0, END)
+        self.cpf_entry.delete(0, END)
         self.senha_entry.delete(0, END)
     def limpa_tela_senha_dep_inicial(self):
         self.inserir_senha_entry.delete(0, END)
@@ -38,6 +30,10 @@ class Funcs():
     def abrir_autenticacao(self):
         self.frames_autenticacao()
         self.widgets_autenticacao()
+
+    def abrir_tela_inicial_conta(self):
+        self.frame_conta()
+        self.widgets_conta()
 
 
 
@@ -86,7 +82,8 @@ class Funcs():
                 cod_conta serial primary key,
                 cod_cliente int not null references clientes(cod_cliente),
                 senha varchar(20) not null,
-                saldo float not null default 0
+                saldo float not null default 0,
+                chave_pix varchar(20)
                 )
                 ''')
         self.conn.commit();
@@ -120,6 +117,7 @@ class Funcs():
         self.conn.commit()
         self.desconecta_bd()
 
+        self.frame_continuar_criarConta.destroy()
         self.abrir_autenticacao()
 
 
@@ -168,28 +166,57 @@ class Funcs():
 
     # Autenticação do cliente na tela de entrada para acessar a conta
     def autenticar_cliente(self):
-        self.user = self.user_entry.get()
+        self.cpf = self.cpf_entry.get()
         self.senha = self.senha_entry.get()
+
         self.conecta_bd()
 
-        self.cursor.execute("""SELECT nome_cliente FROM clientes""")
-
-        lista_de_nomes_usuario = self.cursor.fetchall()
-        print(lista_de_nomes_usuario)
+        self.cursor.execute("""SELECT cpf FROM clientes""")
+        lista_de_cpf_usuarios = self.cursor.fetchall()
+        print(lista_de_cpf_usuarios)
         self.conn.commit()
-        for i in range(len(lista_de_nomes_usuario)):
-            if self.user in lista_de_nomes_usuario[i]:
-                self.cursor.execute(f"""SELECT cpf FROM clientes WHERE nome_cliente='{self.user}'""")
+
+
+        self.cursor.execute(f"""SELECT cod_cliente FROM clientes WHERE cpf='{self.cpf}'""")
+        cod_cliente = self.cursor.fetchall()[0][0]
+        print('Codigo cliente: ', cod_cliente)
+        self.conn.commit()
+
+        for i in range(len(lista_de_cpf_usuarios)):
+            if self.cpf in lista_de_cpf_usuarios[i]:
+                self.cursor.execute(f"""SELECT senha FROM contas WHERE cod_cliente='{cod_cliente}'""")
+                senha_obtida = self.cursor.fetchall()[0][0]
                 self.conn.commit()
-                senha_obtida = self.cursor.fetchall()
-                print(senha_obtida)
-                for i in range(len(senha_obtida)):
-                    if self.senha in senha_obtida[i]:
-                        print('senha digitada é igual no bd')
-                        self.limpa_tela_autenticacao()
-                        self.desconecta_bd()
-                        ###
-                        ### COLOCAR AQUI UM NOVO FRAME PRA QUANDO O USUARIO FOR AUTENTICADO
+                print('Senha: ',senha_obtida)
+
+
+                if self.senha == senha_obtida:
+                    print('senha digitada é igual no bd')
+                    self.limpa_tela_autenticacao()
+                    #abrir frame tela inicial
+
+                    self.cursor.execute(f"""SELECT * FROM clientes cl, contas c WHERE cl.cod_cliente=c.cod_cliente and cpf='{self.cpf}' and senha='{self.senha}'""")
+                    self.conn.commit()
+                    lista_dados_gerais_cliente_conta = self.cursor.fetchall()[0]
+                    print(lista_dados_gerais_cliente_conta)
+                    self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = lista_dados_gerais_cliente_conta
+
+                    print(f"Nome: {self.cliente_conta_nome_cliente}\nSaldo: {self.cliente_conta_saldo}")
+                    self.desconecta_bd()
+
+                    self.abrir_tela_inicial_conta()
+                else:
+                    self.senha_errada_lb = Label(self.frame_1, text='Senha incorreta!', bg='red')
+                    self.senha_errada_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
+
+
+                # for j in range(len(senha_obtida)):
+                #     if self.senha in senha_obtida[j]:
+                #         print('senha digitada é igual no bd')
+                #         self.limpa_tela_autenticacao()
+                #         self.desconecta_bd()
+                #         ###
+                #         ### COLOCAR AQUI UM NOVO FRAME PRA QUANDO O USUARIO FOR AUTENTICADO
 
 
 
@@ -253,6 +280,12 @@ class Funcs():
     #         self.listaCli.insert("", END, values=i)
     #     self.desconecta_bd()
 
+
+
+
+
+
+
 class Application(Funcs):
     def __init__(self):
         self.root = root
@@ -302,14 +335,14 @@ class Application(Funcs):
         self.bt_mudarSenha.place(relx=0.6, rely=0.85, relwidth=0.35, relheight=0.1)
 
         ### Criação da label e input user
-        self.lb_user = Label(self.frame_1, text='Nome:', bg='#1e3743', fg='white')
-        self.lb_user.place(relx=0.2, rely=0.2, relwidth=0.2, relheight=0.1)
+        self.lb_cpf = Label(self.frame_1, text='CPF:', bg='#1e3743', fg='white')
+        self.lb_cpf.place(relx=0.2, rely=0.2, relwidth=0.2, relheight=0.1)
 
-        self.user_entry = Entry(self.frame_1)
-        self.user_entry.place(relx=0.45, rely=0.2, relwidth=0.3, relheight=0.1)
+        self.cpf_entry = Entry(self.frame_1)
+        self.cpf_entry.place(relx=0.45, rely=0.2, relwidth=0.3, relheight=0.1)
 
         ### Criação da label e input senha
-        self.lb_senha = Label(self.frame_1, text='CPF:', bg='#1e3743', fg='white')
+        self.lb_senha = Label(self.frame_1, text='Senha:', bg='#1e3743', fg='white')
         self.lb_senha.place(relx=0.2, rely=0.4, relwidth=0.2, relheight=0.1)
 
         self.senha_entry = Entry(self.frame_1)
@@ -381,8 +414,8 @@ class Application(Funcs):
     def widgets_continuar_criarConta(self):
         self.root.title('Criar Conta')
         self.saldo = 0
-        print(self.saldo)
-        #botao voltar nao funciona
+        print(f'Saldo: {self.saldo}')
+
         self.bt_voltar_criarConta = Button(self.frame_continuar_criarConta, text='Voltar', command=self.abrir_janela_criarConta)
         self.bt_voltar_criarConta.place(relx=0.01, rely=0.9, relwidth=0.2, relheight=0.1)
 
@@ -410,6 +443,17 @@ class Application(Funcs):
 
 
 
+
+    # Frame e Widgets Tela Inicial Conta
+    def frame_conta(self):
+        self.frame_conta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
+        self.frame_conta.place(relx= 0.06, rely=0.06, relwidth=0.86, relheight=0.86)
+
+    def widgets_conta(self):
+        self.root.title('Tela inicial')
+
+        self.bem_vindo_lb = Label(self.frame_conta, text=f'Bem vindo {self.cliente_conta_nome_cliente}')
+        self.bem_vindo_lb.place()
 
 
     # def lista_frame2(self):
