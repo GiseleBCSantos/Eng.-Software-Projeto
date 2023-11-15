@@ -19,6 +19,9 @@ class Funcs():
         self.inserir_senha_entry.delete(0, END)
         self.repetir_senha_entry.delete(0, END)
 
+    def limpa_entry_deposito(self):
+        self.deposito_entry.delete(0, END)
+
 
 
 
@@ -34,6 +37,14 @@ class Funcs():
     def abrir_tela_inicial_conta(self):
         self.frame_conta()
         self.widgets_conta()
+
+        self.frame_1.destroy()
+
+
+    def voltar_conta_autenticacao(self):
+        self.abrir_autenticacao()
+        self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = 0,0,0,0,0,0,0,0,0,0,0
+        self.frame_conta.destroy()
 
 
 
@@ -208,15 +219,10 @@ class Funcs():
                 else:
                     self.senha_errada_lb = Label(self.frame_1, text='Senha incorreta!', bg='red')
                     self.senha_errada_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
+            else:
+                self.usuario_errado_lb = Label(self.frame_1, text='Usuário não encontrado!', bg='red')
+                self.usuario_errado_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
 
-
-                # for j in range(len(senha_obtida)):
-                #     if self.senha in senha_obtida[j]:
-                #         print('senha digitada é igual no bd')
-                #         self.limpa_tela_autenticacao()
-                #         self.desconecta_bd()
-                #         ###
-                #         ### COLOCAR AQUI UM NOVO FRAME PRA QUANDO O USUARIO FOR AUTENTICADO
 
 
 
@@ -268,6 +274,34 @@ class Funcs():
         self.senha_diferente_2_lb.place(relx=0.71, rely=0.25, relwidth=0.28, relheight=0.1)
 
         self.limpa_tela_senha_dep_inicial()
+
+    #Botao para depositar no frame conta
+    def depositar_dinheiro(self):
+        self.deposito_label = Label(self.frame_conta, text='R$')
+        self.deposito_label.place(relx=0.35, rely=0.25, relwidth=0.05, relheight=0.1)
+
+        self.deposito_entry = Entry(self.frame_conta)
+        self.deposito_entry.place(relx=0.4, rely=0.25, relwidth=0.2, relheight=0.1)
+
+        self.ok_deposito = Button(self.frame_conta, text="OK", command=self.depositar_dinheiro2)
+        self.ok_deposito.place(relx=0.65, rely=0.25, relwidth=0.1, relheight=0.1)
+
+
+    def depositar_dinheiro2(self):
+
+        deposito = self.deposito_entry.get()
+        print(deposito)
+
+        self.conecta_bd()
+        self.cursor.execute(f"""UPDATE contas SET saldo = saldo+{deposito} WHERE cod_cliente={self.cliente_conta_cod_cliente}""")
+        self.desconecta_bd()
+
+        self.limpa_entry_deposito()
+
+        #valor nao esta atualizando no BD
+
+
+
 
     # Criar tabela futuramente
     # def select_lista(self):
@@ -453,7 +487,27 @@ class Application(Funcs):
         self.root.title('Tela inicial')
 
         self.bem_vindo_lb = Label(self.frame_conta, text=f'Bem vindo {self.cliente_conta_nome_cliente}')
-        self.bem_vindo_lb.place()
+        self.bem_vindo_lb.place(relx=0.25, rely=0.01, relwidth=0.5, relheight=0.08)
+
+        self.saldo_lb = Label(self.frame_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
+        self.saldo_lb.place(relx=0.375, rely=0.12, relwidth= 0.25, relheight=0.1)
+
+        self.depositar_bt = Button(self.frame_conta, text='Depositar', command=self.depositar_dinheiro)
+        self.depositar_bt.place(relx=0.1, rely=0.25, relwidth=0.2, relheight=0.1)
+
+        self.area_pix_bt = Button(self.frame_conta, text='Área Pix')
+        self.area_pix_bt.place(relx=0.43, rely=0.4, relwidth=0.15, relheight=0.1)
+
+        self.solicitar_emprestimo_bt = Button(self.frame_conta, text='Solicitar empréstimo')
+        self.solicitar_emprestimo_bt.place(relx=0.35, rely=0.55, relwidth=0.3, relheight=0.1)
+
+        self.depositar_poupanca_bt = Button(self.frame_conta, text='Depositar poupança')
+        self.depositar_poupanca_bt.place(relx=0.35, rely=0.7, relwidth=0.3, relheight=0.1)
+
+        self.voltar_autenticacao_bt = Button(self.frame_conta, text='Voltar', command=self.voltar_conta_autenticacao)
+        self.voltar_autenticacao_bt.place(relx=0.01, rely=0.9, relwidth=0.15, relheight=0.1)
+
+
 
 
     # def lista_frame2(self):
