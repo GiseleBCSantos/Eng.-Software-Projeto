@@ -44,8 +44,7 @@ class Funcs():
 
     def voltar_conta_autenticacao(self):
         self.abrir_autenticacao()
-        self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = 0,0,0,0,0,0,0,0,0,0,0
-        self.frame_conta.destroy()
+        self.frames_conta.destroy()
 
 
 
@@ -185,44 +184,69 @@ class Funcs():
 
         self.cursor.execute("""SELECT cpf FROM clientes""")
         lista_de_cpf_usuarios = self.cursor.fetchall()
-        print(lista_de_cpf_usuarios)
         self.conn.commit()
+        print(lista_de_cpf_usuarios)
 
 
         self.cursor.execute(f"""SELECT cod_cliente FROM clientes WHERE cpf='{self.cpf}'""")
-        cod_cliente = self.cursor.fetchall()[0][0]
-        print('Codigo cliente: ', cod_cliente)
-        self.conn.commit()
+        lista_cod_cliente = self.cursor.fetchall()[0]
+        cod_cliente = lista_cod_cliente[0]
+        print('Len lista cod_cliente', len(lista_cod_cliente))
 
-        for i in range(len(lista_de_cpf_usuarios)):
-            if self.cpf in lista_de_cpf_usuarios[i]:
-                self.cursor.execute(f"""SELECT senha FROM contas WHERE cod_cliente='{cod_cliente}'""")
-                senha_obtida = self.cursor.fetchall()[0][0]
-                self.conn.commit()
-                print('Senha: ',senha_obtida)
+        if len(lista_cod_cliente) == 1:
+            print('Codigo cliente: ', cod_cliente)
 
+            self.conn.commit()
 
-                if self.senha == senha_obtida:
-                    print('senha digitada é igual no bd')
-                    self.limpa_tela_autenticacao()
-                    #abrir frame tela inicial
-
-                    self.cursor.execute(f"""SELECT * FROM clientes cl, contas c WHERE cl.cod_cliente=c.cod_cliente and cpf='{self.cpf}' and senha='{self.senha}'""")
+            for i in range(len(lista_de_cpf_usuarios)):
+                if self.cpf in lista_de_cpf_usuarios[i]:
+                    self.cursor.execute(f"""SELECT senha FROM contas WHERE cod_cliente='{cod_cliente}'""")
                     self.conn.commit()
-                    lista_dados_gerais_cliente_conta = self.cursor.fetchall()[0]
-                    print(lista_dados_gerais_cliente_conta)
-                    self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = lista_dados_gerais_cliente_conta
+                    senha_obtida = self.cursor.fetchall()
+                    if len(senha_obtida) < 1:
 
-                    print(f"Nome: {self.cliente_conta_nome_cliente}\nSaldo: {self.cliente_conta_saldo}")
-                    self.desconecta_bd()
 
-                    self.abrir_tela_inicial_conta()
-                else:
-                    self.senha_errada_lb = Label(self.frame_1, text='Senha incorreta!', bg='red')
-                    self.senha_errada_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
-            else:
-                self.usuario_errado_lb = Label(self.frame_1, text='Usuário não encontrado!', bg='red')
-                self.usuario_errado_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
+
+                        self.sem_senha_lb = Label(self.frame_1, text='Usuário não possui senha!', bg='red')
+                        self.sem_senha_lb.place(relx=0.4, rely=0.57, relwidth=0.3, relheight=0.08)
+
+                        print('Senha: ',senha_obtida)
+
+                    else:
+                        senha_obtida = senha_obtida[0][0]
+                        if self.senha == senha_obtida:
+
+                            print('senha digitada é igual no bd')
+                            self.limpa_tela_autenticacao()
+                            #abrir frame tela inicial
+
+                            self.cursor.execute(f"""SELECT * FROM clientes cl, contas c WHERE cl.cod_cliente=c.cod_cliente and cpf='{self.cpf}' and senha='{self.senha}'""")
+                            self.conn.commit()
+                            lista_dados_gerais_cliente_conta = self.cursor.fetchall()[0]
+                            print(lista_dados_gerais_cliente_conta)
+                            self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = lista_dados_gerais_cliente_conta
+
+                            print(f"Nome: {self.cliente_conta_nome_cliente}\nSaldo: {self.cliente_conta_saldo}")
+                            self.desconecta_bd()
+
+                            self.abrir_tela_inicial_conta()
+                        else:
+                            self.sem_senha_lb.destroy()
+
+                            self.senha_errada_lb = Label(self.frame_1, text='Senha incorreta!', bg='red')
+                            self.senha_errada_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
+
+
+        else:
+            print('Cliente não encontrado.')
+            self.limpa_tela_autenticacao()
+
+            self.usuario_errado_lb = Label(self.frame_1, text='Usuário não encontrado!', bg='red')
+            self.usuario_errado_lb.place(relx=0.4, rely=0.57, relwidth=0.3, relheight=0.08)
+
+
+
+
 
 
 
@@ -487,31 +511,31 @@ class Application(Funcs):
 
     # Frame e Widgets Tela Inicial Conta
     def frame_conta(self):
-        self.frame_conta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
-        self.frame_conta.place(relx= 0.06, rely=0.06, relwidth=0.86, relheight=0.86)
+        self.frames_conta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
+        self.frames_conta.place(relx= 0.06, rely=0.06, relwidth=0.86, relheight=0.86)
 
     def widgets_conta(self):
         self.root.title('Tela inicial')
 
-        self.bem_vindo_lb = Label(self.frame_conta, text=f'Bem vindo {self.cliente_conta_nome_cliente}')
+        self.bem_vindo_lb = Label(self.frames_conta, text=f'Bem vindo {self.cliente_conta_nome_cliente}')
         self.bem_vindo_lb.place(relx=0.25, rely=0.01, relwidth=0.5, relheight=0.08)
 
-        self.saldo_lb = Label(self.frame_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
+        self.saldo_lb = Label(self.frames_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
         self.saldo_lb.place(relx=0.375, rely=0.12, relwidth= 0.25, relheight=0.1)
 
-        self.depositar_bt = Button(self.frame_conta, text='Depositar', command=self.depositar_dinheiro)
+        self.depositar_bt = Button(self.frames_conta, text='Depositar', command=self.depositar_dinheiro)
         self.depositar_bt.place(relx=0.1, rely=0.25, relwidth=0.2, relheight=0.1)
 
-        self.area_pix_bt = Button(self.frame_conta, text='Área Pix')
+        self.area_pix_bt = Button(self.frames_conta, text='Área Pix')
         self.area_pix_bt.place(relx=0.43, rely=0.4, relwidth=0.15, relheight=0.1)
 
-        self.solicitar_emprestimo_bt = Button(self.frame_conta, text='Solicitar empréstimo')
+        self.solicitar_emprestimo_bt = Button(self.frames_conta, text='Solicitar empréstimo')
         self.solicitar_emprestimo_bt.place(relx=0.35, rely=0.55, relwidth=0.3, relheight=0.1)
 
-        self.depositar_poupanca_bt = Button(self.frame_conta, text='Depositar poupança')
+        self.depositar_poupanca_bt = Button(self.frames_conta, text='Depositar poupança')
         self.depositar_poupanca_bt.place(relx=0.35, rely=0.7, relwidth=0.3, relheight=0.1)
 
-        self.voltar_autenticacao_bt = Button(self.frame_conta, text='Voltar', command=self.voltar_conta_autenticacao)
+        self.voltar_autenticacao_bt = Button(self.frames_conta, text='Voltar', command=self.voltar_conta_autenticacao)
         self.voltar_autenticacao_bt.place(relx=0.01, rely=0.9, relwidth=0.15, relheight=0.1)
 
 
