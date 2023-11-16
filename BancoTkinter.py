@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import psycopg2
+#alteracoes
 
 root = Tk()
 
@@ -289,16 +290,22 @@ class Funcs():
 
     def depositar_dinheiro2(self):
 
-        deposito = self.deposito_entry.get()
+        deposito = int(self.deposito_entry.get())
         print(deposito)
 
         self.conecta_bd()
         self.cursor.execute(f"""UPDATE contas SET saldo = saldo+{deposito} WHERE cod_cliente={self.cliente_conta_cod_cliente}""")
+        self.conn.commit()
         self.desconecta_bd()
+        self.cliente_conta_saldo += deposito
+
+        self.saldo_lb.destroy()
+
+        self.saldo_lb = Label(self.frame_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
+        self.saldo_lb.place(relx=0.375, rely=0.12, relwidth=0.25, relheight=0.1)
 
         self.limpa_entry_deposito()
 
-        #valor nao esta atualizando no BD
 
 
 
