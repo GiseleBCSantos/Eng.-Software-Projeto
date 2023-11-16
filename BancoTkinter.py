@@ -124,7 +124,7 @@ class Funcs():
         self.cursor.execute(f"""SELECT cod_cliente FROM clientes WHERE cpf = '{self.cpf}'""")
         cod_cliente = self.cursor.fetchall()[0][0]
         print(cod_cliente)
-        self.cursor.execute(f"""INSERT INTO contas (cod_cliente, senha, saldo) VALUES({cod_cliente}, {self.senha_criacao}, {self.saldo})""")
+        self.cursor.execute(f"""INSERT INTO contas (cod_cliente, senha, saldo) VALUES({cod_cliente}, '{self.senha_criacao}', {self.saldo})""")
         self.conn.commit()
         self.desconecta_bd()
 
