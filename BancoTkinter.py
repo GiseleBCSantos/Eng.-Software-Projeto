@@ -41,6 +41,10 @@ class Funcs():
 
         self.frame_1.destroy()
 
+    def abrir_areaPix(self):
+        self.frame_areaPix()
+        self.widgets_areaPix()
+
 
     def voltar_conta_autenticacao(self):
         self.abrir_autenticacao()
@@ -300,18 +304,16 @@ class Funcs():
 
         self.limpa_tela_senha_dep_inicial()
 
-    #Botao para depositar no frame conta
+    #Botoes para depositar no frame conta
     def depositar_dinheiro(self):
-        self.deposito_label = Label(self.frame_conta, text='R$')
+        self.deposito_label = Label(self.frames_conta, text='R$')
         self.deposito_label.place(relx=0.35, rely=0.25, relwidth=0.05, relheight=0.1)
 
-        self.deposito_entry = Entry(self.frame_conta)
+        self.deposito_entry = Entry(self.frames_conta)
         self.deposito_entry.place(relx=0.4, rely=0.25, relwidth=0.2, relheight=0.1)
 
-        self.ok_deposito = Button(self.frame_conta, text="OK", command=self.depositar_dinheiro2)
+        self.ok_deposito = Button(self.frames_conta, text="OK", command=self.depositar_dinheiro2)
         self.ok_deposito.place(relx=0.65, rely=0.25, relwidth=0.1, relheight=0.1)
-
-
     def depositar_dinheiro2(self):
 
         deposito = int(self.deposito_entry.get())
@@ -325,12 +327,85 @@ class Funcs():
 
         self.saldo_lb.destroy()
 
-        self.saldo_lb = Label(self.frame_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
+        self.saldo_lb = Label(self.frames_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
         self.saldo_lb.place(relx=0.375, rely=0.12, relwidth=0.25, relheight=0.1)
 
         self.limpa_entry_deposito()
 
 
+
+
+
+
+
+    # Comando para abrir campo de digitar chave pix
+    def campos_inserir_chavePix(self):
+        self.insira_chavePix_lb = Label(self.frame_areaPix1, text='Insira a chave pix que deseja adicionar:')
+        self.insira_chavePix_lb.place(relx=0.02, rely=0.29, relwidth=0.4, relheight=0.1)
+
+        self.insira_chavePix_entry = Entry(self.frame_areaPix1)
+        self.insira_chavePix_entry.place(relx=0.43, rely=0.29, relwidth=0.4, relheight=0.1)
+
+        self.chavePix_bt = Button(self.frame_areaPix1, text='Confirmar', command=self.inserir_chavePix_criada)
+        self.chavePix_bt.place(relx=0.85, rely=0.29, relwidth=0.14, relheight=0.1)
+
+    def inserir_chavePix_criada(self):
+        self.cliente_conta_chave_pix = self.insira_chavePix_entry.get()
+
+        self.conecta_bd()
+        self.cursor.execute(
+            f"""UPDATE contas SET chave_pix = '{self.cliente_conta_chave_pix}' WHERE cod_cliente={self.cliente_conta_cod_cliente}"""
+        )
+        self.conn.commit()
+        self.desconecta_bd()
+
+        self.confirmacao_criacao_chavePix = Label(self.frame_areaPix1, text='Chave Pix criada!', bg='green')
+        self.confirmacao_criacao_chavePix.place(relx=0.35, rely=0.4, relwidth=0.3, relheight=0.1)
+
+
+
+        self.chave_pix_ativa2_lb = Label(self.frame_areaPix1, text=f'Chave pix ativa: {self.cliente_conta_chave_pix}')
+        self.chave_pix_ativa2_lb.place(relx=0, rely=0.05, relwidth=1, relheight=0.1)
+
+
+
+
+
+
+
+    # Transferencia via Pix
+    def transferir_viaPix(self):
+        self.chavePix_alvo_lb = Label(self.frame_areaPix1, text='Insira a chave Pix:')
+        self.chavePix_alvo_lb.place(relx=0.2, rely=0.5, relwidth=0.2, relheight=0.09)
+
+        self.chavePix_alvo_entry = Entry(self.frame_areaPix1)
+        self.chavePix_alvo_entry.place(relx=0.45, rely=0.5, relwidth=0.3, relheight=0.09)
+
+        self.valor_transferido_lb = Label(self.frame_areaPix1, text='Insira o valor a ser transferido:')
+        self.valor_transferido_lb.place(relx=0.2, rely=0.65, relwidth=0.32, relheight=0.09)
+
+        self.valor_transferido_entry = Entry(self.frame_areaPix1)
+        self.valor_transferido_entry.place(relx=0.55, rely=0.65, relwidth=0.2, relheight=0.09)
+
+        self.realizar_transferenciaPix = Button(self.frame_areaPix1, text='Confirmar transferência', command=self.transferir_viaPix2)
+        self.realizar_transferenciaPix.place(relx=0.35, rely=0.8, relwidth=0.3, relheight=0.09)
+
+    def transferir_viaPix2(self):
+        self.chavePix_alvo = self.chavePix_alvo_entry.get()
+        self.valor_transferido = int(self.valor_transferido_entry.get())
+
+        if self.valor_transferido <= self.cliente_conta_saldo:
+            self.conecta_bd()
+
+            self.cursor.execute(f"""UPDATE contas SET saldo = saldo + {self.valor_transferido} WHERE chave_pix='{self.chavePix_alvo}'""")
+            self.conn.commit()
+
+            self.cursor.execute(f"""UPDATE contas SET saldo = saldo - {self.valor_transferido} WHERE cod_cliente='{self.cliente_conta_cod_cliente}'""")
+            self.conn.commit()
+            self.desconecta_bd()
+
+            self.transferencia_realizada_com_sucesso_lb = Label(self.frame_areaPix1, text='Transferência realizada com sucesso!', bg='green')
+            self.transferencia_realizada_com_sucesso_lb.place(relx=0.3, rely=0.9, relwidth=0.4, relheight=0.08)
 
 
 
@@ -526,7 +601,7 @@ class Application(Funcs):
         self.depositar_bt = Button(self.frames_conta, text='Depositar', command=self.depositar_dinheiro)
         self.depositar_bt.place(relx=0.1, rely=0.25, relwidth=0.2, relheight=0.1)
 
-        self.area_pix_bt = Button(self.frames_conta, text='Área Pix')
+        self.area_pix_bt = Button(self.frames_conta, text='Área Pix', command=self.abrir_areaPix)
         self.area_pix_bt.place(relx=0.43, rely=0.4, relwidth=0.15, relheight=0.1)
 
         self.solicitar_emprestimo_bt = Button(self.frames_conta, text='Solicitar empréstimo')
@@ -537,6 +612,38 @@ class Application(Funcs):
 
         self.voltar_autenticacao_bt = Button(self.frames_conta, text='Voltar', command=self.voltar_conta_autenticacao)
         self.voltar_autenticacao_bt.place(relx=0.01, rely=0.9, relwidth=0.15, relheight=0.1)
+
+
+
+
+    # Frame e Widgets Area Pix
+    def frame_areaPix(self):
+        self.frame_areaPix1 = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
+        self.frame_areaPix1.place(relx= 0.04, rely=0.04, relwidth=0.92, relheight=0.92)
+    def widgets_areaPix(self):
+        self.root.title('Área Pix')
+
+        self.voltar_autenticacao_bt = Button(self.frame_areaPix1, text='Voltar', command=self.abrir_tela_inicial_conta)
+        self.voltar_autenticacao_bt.place(relx=0.01, rely=0.9, relwidth=0.15, relheight=0.1)
+        print(self.cliente_conta_chave_pix)
+
+        if self.cliente_conta_chave_pix != None:
+            self.chave_pix_ativa_lb = Label(self.frame_areaPix1, text=f'Chave pix ativa: {self.cliente_conta_chave_pix}')
+            self.chave_pix_ativa_lb.place(relx=0.2, rely=0.05, relwidth=0.6, relheight=0.1)
+
+            self.transferencia_viaPix_lb = Label(self.frame_areaPix1, text='Dejesa fazer uma transferencia via pix?')
+            self.transferencia_viaPix_lb.place(relx=0.2, rely=0.2, relwidth=0.4, relheight=0.09)
+
+            self.transferencia_viaPix_bt = Button(self.frame_areaPix1, text='Sim', command=self.transferir_viaPix)
+            self.transferencia_viaPix_bt.place(relx=0.7, rely=0.2, relwidth=0.1, relheight=0.09)
+
+
+        else:
+            self.sem_chave_pix_ativa_lb = Label(self.frame_areaPix1, text=f'Você não possui chave pix ativa. Deseja adicionar uma para poder receber transferências via pix?')
+            self.sem_chave_pix_ativa_lb.place(relx=0, rely=0.05, relwidth=1, relheight=0.1)
+
+            self.confirmacao_criacao_chavePix_bt = Button(self.frame_areaPix1, text='Sim', command=self.campos_inserir_chavePix)
+            self.confirmacao_criacao_chavePix_bt.place(relx=0.4, rely=0.2, relwidth=0.2, relheight=0.07)
 
 
 
