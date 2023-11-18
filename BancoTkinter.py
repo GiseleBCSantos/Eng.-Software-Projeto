@@ -36,6 +36,10 @@ class Funcs():
     def abrir_janela_criarConta(self):
         self.frame_adicionarCliente()
         self.widgets_adicionarCliente()
+
+        self.frame_1.destroy()
+
+
     def abrir_autenticacao(self):
         self.frames_autenticacao()
         self.widgets_autenticacao()
@@ -49,6 +53,9 @@ class Funcs():
     def abrir_areaPix(self):
         self.frame_areaPix()
         self.widgets_areaPix()
+
+        self.frames_conta.destroy()
+
 
 
     def tela_inicial_conta_para_autenticacao(self):
