@@ -23,6 +23,11 @@ class Funcs():
     def limpa_entry_deposito(self):
         self.deposito_entry.delete(0, END)
 
+    def limpa_tela_areaPix(self):
+        self.chavePix_alvo_entry.delete(0, END)
+        self.valor_transferido_entry.delete(0, END)
+
+
 
 
 
@@ -46,9 +51,15 @@ class Funcs():
         self.widgets_areaPix()
 
 
-    def voltar_conta_autenticacao(self):
-        self.abrir_autenticacao()
+    def tela_inicial_conta_para_autenticacao(self):
         self.frames_conta.destroy()
+        self.abrir_autenticacao()
+
+    def areaPix_para_tela_inicial_conta(self):
+        self.frame_areaPix1.destroy()
+        self.frame_conta()
+        self.widgets_conta()
+
 
 
 
@@ -193,60 +204,68 @@ class Funcs():
 
 
         self.cursor.execute(f"""SELECT cod_cliente FROM clientes WHERE cpf='{self.cpf}'""")
-        lista_cod_cliente = self.cursor.fetchall()[0]
-        cod_cliente = lista_cod_cliente[0]
-        print('Len lista cod_cliente', len(lista_cod_cliente))
+        self.conn.commit()
+        try:
+            lista_cod_cliente = self.cursor.fetchall()[0]
+            cod_cliente = lista_cod_cliente[0]
+            print('Len lista cod_cliente', len(lista_cod_cliente))
 
-        if len(lista_cod_cliente) == 1:
-            print('Codigo cliente: ', cod_cliente)
+            if len(lista_cod_cliente) == 1:
+                print('Codigo cliente: ', cod_cliente)
 
-            self.conn.commit()
+                # self.conn.commit()
 
-            for i in range(len(lista_de_cpf_usuarios)):
-                if self.cpf in lista_de_cpf_usuarios[i]:
-                    self.cursor.execute(f"""SELECT senha FROM contas WHERE cod_cliente='{cod_cliente}'""")
-                    self.conn.commit()
-                    senha_obtida = self.cursor.fetchall()
-                    if len(senha_obtida) < 1:
+                for i in range(len(lista_de_cpf_usuarios)):
+                    if self.cpf in lista_de_cpf_usuarios[i]:
+                        self.cursor.execute(f"""SELECT senha FROM contas WHERE cod_cliente='{cod_cliente}'""")
+                        self.conn.commit()
+                        senha_obtida = self.cursor.fetchall()
+                        print(senha_obtida)
+                        if len(senha_obtida) < 1:
 
 
 
-                        self.sem_senha_lb = Label(self.frame_1, text='Usuário não possui senha!', bg='red')
-                        self.sem_senha_lb.place(relx=0.4, rely=0.57, relwidth=0.3, relheight=0.08)
+                            self.sem_senha_lb = Label(self.frame_1, text='Usuário não possui senha!', bg='red')
+                            self.sem_senha_lb.place(relx=0.4, rely=0.57, relwidth=0.3, relheight=0.08)
 
-                        print('Senha: ',senha_obtida)
+                            print('Senha: ',senha_obtida)
 
-                    else:
-                        senha_obtida = senha_obtida[0][0]
-                        if self.senha == senha_obtida:
-
-                            print('senha digitada é igual no bd')
-                            self.limpa_tela_autenticacao()
-                            #abrir frame tela inicial
-
-                            self.cursor.execute(f"""SELECT * FROM clientes cl, contas c WHERE cl.cod_cliente=c.cod_cliente and cpf='{self.cpf}' and senha='{self.senha}'""")
-                            self.conn.commit()
-                            lista_dados_gerais_cliente_conta = self.cursor.fetchall()[0]
-                            print(lista_dados_gerais_cliente_conta)
-                            self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = lista_dados_gerais_cliente_conta
-
-                            print(f"Nome: {self.cliente_conta_nome_cliente}\nSaldo: {self.cliente_conta_saldo}")
-                            self.desconecta_bd()
-
-                            self.abrir_tela_inicial_conta()
                         else:
-                            self.sem_senha_lb.destroy()
+                            senha_obtida = senha_obtida[0][0]
+                            print(senha_obtida)
+                            if self.senha == senha_obtida:
 
-                            self.senha_errada_lb = Label(self.frame_1, text='Senha incorreta!', bg='red')
-                            self.senha_errada_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
+                                print('senha digitada é igual no bd')
+                                self.limpa_tela_autenticacao()
+                                #abrir frame tela inicial
 
+                                self.cursor.execute(f"""SELECT * FROM clientes cl, contas c WHERE cl.cod_cliente=c.cod_cliente and cpf='{self.cpf}' and senha='{self.senha}'""")
+                                self.conn.commit()
+                                lista_dados_gerais_cliente_conta = self.cursor.fetchall()[0]
+                                print(lista_dados_gerais_cliente_conta)
+                                self.cliente_conta_cod_cliente, self.cliente_conta_nome_cliente, self.cliente_conta_cpf, self.cliente_conta_rg, self.cliente_conta_telefone, self.cliente_conta_endereco, self.cliente_conta_cod_conta, self.cliente_conta_cod_cliente, self.cliente_conta_senha, self.cliente_conta_saldo, self.cliente_conta_chave_pix = lista_dados_gerais_cliente_conta
 
-        else:
+                                print(f"Nome: {self.cliente_conta_nome_cliente}\nSaldo: {self.cliente_conta_saldo}")
+                                self.desconecta_bd()
+
+                                self.abrir_tela_inicial_conta()
+                            else:
+
+                                self.senha_errada_lb = Label(self.frame_1, text='Senha incorreta!', bg='red')
+                                self.senha_errada_lb.place(relx=0.4, rely=0.57, relwidth=0.2, relheight=0.08)
+        except:
             print('Cliente não encontrado.')
             self.limpa_tela_autenticacao()
 
             self.usuario_errado_lb = Label(self.frame_1, text='Usuário não encontrado!', bg='red')
-            self.usuario_errado_lb.place(relx=0.4, rely=0.57, relwidth=0.3, relheight=0.08)
+            self.usuario_errado_lb.place(relx=0.35, rely=0.57, relwidth=0.3, relheight=0.08)
+
+        # else:
+        #     print('Cliente não encontrado.')
+        #     self.limpa_tela_autenticacao()
+        #
+        #     self.usuario_errado_lb = Label(self.frame_1, text='Usuário não encontrado!', bg='red')
+        #     self.usuario_errado_lb.place(relx=0.4, rely=0.57, relwidth=0.3, relheight=0.08)
 
 
 
@@ -264,10 +283,10 @@ class Funcs():
     # Para caso o cliente deseje fazer um depósito inicial ao criar a conta
     def confirmacao_deposito_inicial(self):
         self.deposito_inicial_lb = Label(self.frame_continuar_criarConta, text='R$')
-        self.deposito_inicial_lb.place(relx=0.2, rely=0.65, relwidth=0.1, relheight=0.1)
+        self.deposito_inicial_lb.place(relx=0.375, rely=0.65, relwidth=0.05, relheight=0.1)
 
         self.deposito_inicial_entry = Entry(self.frame_continuar_criarConta)
-        self.deposito_inicial_entry.place(relx=0.35, rely=0.65, relwidth=0.3, relheight=0.1)
+        self.deposito_inicial_entry.place(relx=0.425, rely=0.65, relwidth=0.2, relheight=0.1)
 
         self.confirmacao_deposito_inicial_bt = Button(self.frame_continuar_criarConta, text='Confirmar depósito', command=self.atualizar_saldo_inicial)
         self.confirmacao_deposito_inicial_bt.place(relx=0.35, rely=0.78, relwidth=0.3, relheight=0.1)
@@ -359,53 +378,75 @@ class Funcs():
         self.conn.commit()
         self.desconecta_bd()
 
-        self.confirmacao_criacao_chavePix = Label(self.frame_areaPix1, text='Chave Pix criada!', bg='green')
-        self.confirmacao_criacao_chavePix.place(relx=0.35, rely=0.4, relwidth=0.3, relheight=0.1)
-
-
-
-        self.chave_pix_ativa2_lb = Label(self.frame_areaPix1, text=f'Chave pix ativa: {self.cliente_conta_chave_pix}')
-        self.chave_pix_ativa2_lb.place(relx=0, rely=0.05, relwidth=1, relheight=0.1)
-
-
-
-
+        self.abrir_areaPix()
 
 
 
     # Transferencia via Pix
     def transferir_viaPix(self):
         self.chavePix_alvo_lb = Label(self.frame_areaPix1, text='Insira a chave Pix:')
-        self.chavePix_alvo_lb.place(relx=0.2, rely=0.5, relwidth=0.2, relheight=0.09)
+        self.chavePix_alvo_lb.place(relx=0.2, rely=0.4, relwidth=0.2, relheight=0.09)
 
         self.chavePix_alvo_entry = Entry(self.frame_areaPix1)
-        self.chavePix_alvo_entry.place(relx=0.45, rely=0.5, relwidth=0.3, relheight=0.09)
+        self.chavePix_alvo_entry.place(relx=0.45, rely=0.4, relwidth=0.3, relheight=0.09)
 
         self.valor_transferido_lb = Label(self.frame_areaPix1, text='Insira o valor a ser transferido:')
-        self.valor_transferido_lb.place(relx=0.2, rely=0.65, relwidth=0.32, relheight=0.09)
+        self.valor_transferido_lb.place(relx=0.2, rely=0.55, relwidth=0.32, relheight=0.09)
 
         self.valor_transferido_entry = Entry(self.frame_areaPix1)
-        self.valor_transferido_entry.place(relx=0.55, rely=0.65, relwidth=0.2, relheight=0.09)
+        self.valor_transferido_entry.place(relx=0.55, rely=0.55, relwidth=0.2, relheight=0.09)
+
 
         self.realizar_transferenciaPix = Button(self.frame_areaPix1, text='Confirmar transferência', command=self.transferir_viaPix2)
-        self.realizar_transferenciaPix.place(relx=0.35, rely=0.8, relwidth=0.3, relheight=0.09)
+        self.realizar_transferenciaPix.place(relx=0.35, rely=0.7, relwidth=0.3, relheight=0.09)
+
 
     def transferir_viaPix2(self):
         self.chavePix_alvo = self.chavePix_alvo_entry.get()
         self.valor_transferido = int(self.valor_transferido_entry.get())
 
-        if self.valor_transferido <= self.cliente_conta_saldo:
-            self.conecta_bd()
+        self.conecta_bd()
 
-            self.cursor.execute(f"""UPDATE contas SET saldo = saldo + {self.valor_transferido} WHERE chave_pix='{self.chavePix_alvo}'""")
-            self.conn.commit()
+        self.cursor.execute("""SELECT chave_pix FROM contas""")
+        self.conn.commit()
+        lista_de_chaves_pix = self.cursor.fetchall()
+        lista_de_chaves_pix_2 = []
+        print(lista_de_chaves_pix)
 
-            self.cursor.execute(f"""UPDATE contas SET saldo = saldo - {self.valor_transferido} WHERE cod_cliente='{self.cliente_conta_cod_cliente}'""")
-            self.conn.commit()
-            self.desconecta_bd()
+        self.desconecta_bd()
 
-            self.transferencia_realizada_com_sucesso_lb = Label(self.frame_areaPix1, text='Transferência realizada com sucesso!', bg='green')
-            self.transferencia_realizada_com_sucesso_lb.place(relx=0.3, rely=0.9, relwidth=0.4, relheight=0.08)
+        for i in lista_de_chaves_pix:
+            lista_de_chaves_pix_2.append(i[0])
+
+        if self.chavePix_alvo in lista_de_chaves_pix_2:
+            print('Está aqui!')
+            if self.valor_transferido <= self.cliente_conta_saldo:
+                self.conecta_bd()
+
+                self.cursor.execute(f"""UPDATE contas SET saldo = saldo + {self.valor_transferido} WHERE chave_pix='{self.chavePix_alvo}'""")
+                self.conn.commit()
+
+                self.cursor.execute(f"""UPDATE contas SET saldo = saldo - {self.valor_transferido} WHERE cod_cliente='{self.cliente_conta_cod_cliente}'""")
+                self.conn.commit()
+                self.desconecta_bd()
+
+                self.transferencia_realizada_com_sucesso_lb = Label(self.frame_areaPix1, text='Transferência realizada com sucesso!', bg='green')
+                self.transferencia_realizada_com_sucesso_lb.place(relx=0.3, rely=0.9, relwidth=0.4, relheight=0.08)
+
+                self.cliente_conta_saldo -= self.valor_transferido
+                self.saldo_lb = Label(self.frames_conta, text=f"Saldo atual: R${self.cliente_conta_saldo:.2f}")
+                self.saldo_lb.place(relx=0.375, rely=0.12, relwidth=0.25, relheight=0.1)
+            else:
+                self.dinheiro_insuficiente_lb = Label(self.frame_areaPix1, text='Saldo insuficiente!', bg='red')
+                self.dinheiro_insuficiente_lb.place(relx=0.35, rely=0.9, relwidth=0.3, relheight=0.08)
+
+        else:
+            self.dinheiro_insuficiente_lb = Label(self.frame_areaPix1, text='Chave Pix não encontrada!', bg='red')
+            self.dinheiro_insuficiente_lb.place(relx=0.35, rely=0.9, relwidth=0.4, relheight=0.08)
+
+        self.limpa_tela_areaPix()
+
+
 
 
 
@@ -419,8 +460,6 @@ class Funcs():
     #     for i in lista:
     #         self.listaCli.insert("", END, values=i)
     #     self.desconecta_bd()
-
-
 
 
 
@@ -556,9 +595,6 @@ class Application(Funcs):
         self.saldo = 0
         print(f'Saldo: {self.saldo}')
 
-        self.bt_voltar_criarConta = Button(self.frame_continuar_criarConta, text='Voltar', command=self.abrir_janela_criarConta)
-        self.bt_voltar_criarConta.place(relx=0.01, rely=0.9, relwidth=0.2, relheight=0.1)
-
         self.inserir_senha_label = Label(self.frame_continuar_criarConta, text='Insira uma senha:')
         self.inserir_senha_label.place(relx=0.2, rely=0.1, relwidth=0.25, relheight=0.1)
         self.inserir_senha_entry = Entry(self.frame_continuar_criarConta)
@@ -574,12 +610,12 @@ class Application(Funcs):
         self.deposito_inicial_label = Label(self.frame_continuar_criarConta, text='Deseja realizar um depósito inicial?')
         self.deposito_inicial_label.place(relx=0.3, rely=0.4, relwidth=0.45, relheight=0.1)
         self.deposito_inicial_confirmacao_sim_bt = Button(self.frame_continuar_criarConta, text='Sim', command=self.confirmacao_deposito_inicial)
-        self.deposito_inicial_confirmacao_sim_bt.place(relx=0.5, rely=0.52, relwidth=0.1, relheight=0.1)
+        self.deposito_inicial_confirmacao_sim_bt.place(relx=0.45, rely=0.52, relwidth=0.1, relheight=0.1)
 
 
 
         self.criar_conta_bt = Button(self.frame_continuar_criarConta, text='Deseja criar sua conta no banco agora?', command=self.adicionarContas)
-        self.criar_conta_bt.place(relx=0.35, rely=0.9, relwidth=0.5, relheight=0.1)
+        self.criar_conta_bt.place(relx=0.25, rely=0.9, relwidth=0.5, relheight=0.1)
 
 
 
@@ -610,7 +646,7 @@ class Application(Funcs):
         self.depositar_poupanca_bt = Button(self.frames_conta, text='Depositar poupança')
         self.depositar_poupanca_bt.place(relx=0.35, rely=0.7, relwidth=0.3, relheight=0.1)
 
-        self.voltar_autenticacao_bt = Button(self.frames_conta, text='Voltar', command=self.voltar_conta_autenticacao)
+        self.voltar_autenticacao_bt = Button(self.frames_conta, text='Voltar', command=self.tela_inicial_conta_para_autenticacao)
         self.voltar_autenticacao_bt.place(relx=0.01, rely=0.9, relwidth=0.15, relheight=0.1)
 
 
@@ -623,7 +659,7 @@ class Application(Funcs):
     def widgets_areaPix(self):
         self.root.title('Área Pix')
 
-        self.voltar_autenticacao_bt = Button(self.frame_areaPix1, text='Voltar', command=self.abrir_tela_inicial_conta)
+        self.voltar_autenticacao_bt = Button(self.frame_areaPix1, text='Voltar', command=self.areaPix_para_tela_inicial_conta)
         self.voltar_autenticacao_bt.place(relx=0.01, rely=0.9, relwidth=0.15, relheight=0.1)
         print(self.cliente_conta_chave_pix)
 
