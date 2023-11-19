@@ -39,6 +39,12 @@ class Funcs():
 
         self.frame_1.destroy()
 
+    def abrir_janela_adicionarCliente(self):
+        self.frames_continuar_criarConta()
+        self.widgets_continuar_criarConta()
+
+        self.frame_criarConta.destroy()
+
 
     def abrir_autenticacao(self):
         self.frames_autenticacao()
@@ -187,8 +193,10 @@ class Funcs():
         self.desconecta_bd()
         # self.select_lista()
         print('conta criada com sucesso')
-        self.frame_continuar_criarConta()
-        self.widgets_continuar_criarConta()
+
+        self.abrir_janela_adicionarCliente()
+        # self.frame_continuar_criarConta()
+        # self.widgets_continuar_criarConta()
 
 
 
@@ -385,6 +393,7 @@ class Funcs():
         self.conn.commit()
         self.desconecta_bd()
 
+        self.frame_areaPix1.destroy()
         self.abrir_areaPix()
 
 
@@ -594,7 +603,7 @@ class Application(Funcs):
 
 
     # Frame e Widgets Criar Conta
-    def frame_continuar_criarConta(self):
+    def frames_continuar_criarConta(self):
         self.frame_continuar_criarConta = Frame(self.root, bd=4, bg='#dfe3ee', highlightbackground='#759fe6', highlightthickness=2)
         self.frame_continuar_criarConta.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
     def widgets_continuar_criarConta(self):
@@ -712,13 +721,6 @@ class Application(Funcs):
     #     self.scroolLista = Scrollbar(self.frame_2, orient='vertical')
     #     self.listaCli.configure(yscroll= self.scroolLista.set)
     #     self.scroolLista.place(relx=0.96, rely=0.1, relwidth=0.04, relheight=0.85)
-
-
-
-
-
-
-
 
 
 
